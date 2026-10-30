@@ -30,7 +30,7 @@ jobs:
 
           def generate_html(path):
               items = os.listdir(path)
-              # Игнорируем скрытые системные файлы гитхаба
+              # Ignore hidden GitHub system files
               items = [i for i in items if not i.startswith('.') and i != 'index.html']
               
               html = '<html>\n<head><title>Index of ' + path + '</title></head>\n'
@@ -42,14 +42,14 @@ jobs:
                   is_dir = os.path.isdir(full_path)
                   name = item + ('/' if is_dir else '')
                   
-                  # Получаем системное время изменения файла
+                  # Getting the file's system modification time
                   mtime = os.path.getmtime(full_path)
                   date_str = time.strftime('%Y-%m-%d %H:%M', time.localtime(mtime))
                   
-                  # Получаем размер
+                  # Get the size
                   size = '-' if is_dir else str(os.path.getsize(full_path))
                   
-                  # Форматируем строку вывода под стандарты Apache
+                  # Formatting the output string to Apache standards
                   html += f'<a href=\"{item}\">{name:<30}</a> {date_str:<20} {size:<10}\n'
                   
               html += '</pre><hr>\n</body>\n</html>'
@@ -70,6 +70,6 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@://github.com'
           git add -A
-          # Проверяем, есть ли изменения, чтобы не сыпать ошибками
+          # Check for changes to avoid throwing errors
           git diff-index --quiet HEAD || git commit -m '🤖 Auto-generated Apache-style index.html files'
           git push
