@@ -12,64 +12,74 @@ jobs:
   build-index:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Python
+      - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Run Autoindex Generator script
+      - name: Run autoindex generator script
         run: |
           python -c "
           import os
           import time
 
           def generate_html(path):
-              items = os.listdir(path)
-              # Ignore hidden GitHub system files
+              try:
+                  items = os.listdir(path)
+              except Exception:
+                  return
+
+              # Exclude hidden files, git internal directories, and target index.html
               items = [i for i in items if not i.startswith('.') and i != 'index.html']
               
+              # Build standard Apache directory listing header
               html = '<html>\n<head><title>Index of ' + path + '</title></head>\n'
               html += '<body>\n<h1>Index of ' + path + '</h1>\n<hr><pre>\n'
               html += '<a href=\"../\">Parent Directory</a>\n'
               
+              # Process each entry in the directory
               for item in items:
                   full_path = os.path.join(path, item)
                   is_dir = os.path.isdir(full_path)
+                  
+                  # Append trailing slash to directory names
                   name = item + ('/' if is_dir else '')
                   
-                  # Getting the file's system modification time
+                  # Retrieve and format modification timestamp
                   mtime = os.path.getmtime(full_path)
                   date_str = time.strftime('%Y-%m-%d %H:%M', time.localtime(mtime))
                   
-                  # Get the size
+                  # Get file size or insert placeholder for subdirectories
                   size = '-' if is_dir else str(os.path.getsize(full_path))
                   
-                  # Formatting the output string to Apache standards
+                  # Append padded row matching default server logging layout
                   html += f'<a href=\"{item}\">{name:<30}</a> {date_str:<20} {size:<10}\n'
                   
               html += '</pre><hr>\n</body>\n</html>'
               
-              with open(os.path.join(path, 'index.html'), 'w') as f:
+              # Output final template inside current execution context
+              with open(os.path.join(path, 'index.html'), 'w', encoding='utf-8') as f:
                   f.write(html)
                   
+              # Recursively process underlying file system nodes
               for item in items:
                   full_path = os.path.join(path, item)
                   if os.path.isdir(full_path):
                       generate_html(full_path)
 
+          # Initiate logic from repository structural workspace root
           generate_html('.')
           "
 
-      - name: Commit and Push generated indexes
+      - name: Push generated indices back to source
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@://github.com'
           git add -A
-          # Check for changes to avoid throwing errors
-          git diff-index --quiet HEAD || git commit -m '🤖 Auto-generated Apache-style index.html files'
+          git diff-index --quiet HEAD || git commit -m '🤖 Auto-generated Apache-style index.html structures'
           git push
