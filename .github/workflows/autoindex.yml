@@ -47,7 +47,7 @@ jobs:
                   full_path = os.path.join(path, item)
                   is_dir = os.path.isdir(full_path)
                   
-                  # Append trailing slash to directory names
+                  # Append trailing slash to directory names 
                   name = item + ('/' if is_dir else '')
                   
                   # Retrieve and format modification timestamp
