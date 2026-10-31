@@ -42,7 +42,7 @@ jobs:
               html += '<body>\n<h1>Index of ' + path + '</h1>\n<hr><pre>\n'
               html += '<a href=\"../\">Parent Directory</a>\n'
               
-              # Process each entry in the directory
+              # Process each entry in the directory 
               for item in items:
                   full_path = os.path.join(path, item)
                   is_dir = os.path.isdir(full_path)
